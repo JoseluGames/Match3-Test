@@ -1,4 +1,5 @@
 
+using System.Collections.Generic;
 using Match3.Model;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -45,6 +46,8 @@ namespace Match3.View
         {
             transform.localPosition = new Vector3(model.X * Size, model.Y * Size);
             gameObject.name = $"Tile {model.X} {model.Y}";
+
+            model.ResolveMatch();
         }
 
         void OnFailedSwap(Direction direction)

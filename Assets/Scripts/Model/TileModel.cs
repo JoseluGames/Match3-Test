@@ -61,16 +61,18 @@ namespace Match3.Model
             }
         }
 
-        public void TryMatch()
+        public void ResolveMatch()
         {
             var matches = GetMatches();
             if (matches.Count == 0)
                 return;
 
+            matches.Add(this);
+
             foreach (var match in matches)
             {
                 gameModel.Tiles[match.X, match.Y] = null;
-                OnMatch?.Invoke();
+                match.OnMatch?.Invoke();
             }
         }
 
