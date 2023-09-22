@@ -34,6 +34,7 @@ namespace Match3.View
                 {
                     var tileModel = model.Tiles[x, y];
                     var tileView = Instantiate(tilePrefab, tilesContainer);
+                    tileView.gameObject.name = $"Tile {x} {y}";
                     tileView.Setup(tileModel);
                     tiles[x, y] = tileView;
                 }

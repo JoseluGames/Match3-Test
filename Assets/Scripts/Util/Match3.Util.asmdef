@@ -1,9 +1,7 @@
 {
-    "name": "Match3.Model",
-    "rootNamespace": "Match3.Model",
-    "references": [
-        "GUID:739acc6e514b24a56a0bb751e30cd90f"
-    ],
+    "name": "Match3.Util",
+    "rootNamespace": "Match3.Util",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

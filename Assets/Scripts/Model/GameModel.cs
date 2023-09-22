@@ -21,7 +21,7 @@ namespace Match3.Model
             {
                 for (int y = 0; y < Tiles.GetLength(1); y++)
                 {
-                    Tiles[x, y] = new TileModel(x, y, Random.Range(0, colors));
+                    Tiles[x, y] = new TileModel(this, x, y, Random.Range(0, colors));
                 }
             }
         }
