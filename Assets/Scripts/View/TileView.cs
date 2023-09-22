@@ -9,6 +9,7 @@ namespace Match3.View
     {
         public const float Size = 2.56f;
         const string SuccessTrigger = "Success";
+        const string FailTrigger = "Fail";
         const string SuccessDirectionParam = "Success Direction";
 
         [SerializeField] SpriteRenderer spriteRenderer;
@@ -47,6 +48,7 @@ namespace Match3.View
 
         void OnFailedSwap(Direction direction)
         {
+            animator.SetTrigger(FailTrigger);
         }
 
         void TrySwap(Direction direction)

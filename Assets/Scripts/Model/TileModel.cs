@@ -55,6 +55,7 @@ namespace Match3.Model
                 gameModel.Tiles[other.X, other.Y] = other;
                 other.OnSuccessfulSwap?.Invoke(direction.GetOpposite());
                 OnSuccessfulSwap?.Invoke(direction);
+                return;
             }
 
             OnFailedSwap?.Invoke(direction);
