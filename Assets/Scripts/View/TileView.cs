@@ -5,7 +5,7 @@ namespace Match3.View
 {
     public class TileView : MonoBehaviour
     {
-        const float TileSize = 1.5f;
+        public const float Size = 2.56f;
 
         [SerializeField] SpriteRenderer spriteRenderer;
         [SerializeField] Sprite[] sprites;
@@ -14,7 +14,7 @@ namespace Match3.View
 
         public void Setup(TileModel model)
         {
-            transform.position = new Vector3(model.X * TileSize, model.Y * TileSize);
+            transform.localPosition = new Vector3(model.X * Size, model.Y * Size);
             this.model = model;
 
             spriteRenderer.sprite = sprites[model.Color];
