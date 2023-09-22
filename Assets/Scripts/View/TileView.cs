@@ -1,3 +1,4 @@
+
 using Match3.Model;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -7,10 +8,13 @@ namespace Match3.View
     public class TileView : MonoBehaviour, IBeginDragHandler, IDragHandler
     {
         public const float Size = 2.56f;
+        const string SuccessTrigger = "Success";
+        const string SuccessDirectionParam = "Success Direction";
 
         [SerializeField] SpriteRenderer spriteRenderer;
         [SerializeField] Sprite[] sprites;
         [SerializeField] float dragSensitivity;
+        [SerializeField] Animator animator;
 
         TileModel model;
         bool hasMoved;
@@ -29,6 +33,13 @@ namespace Match3.View
         }
 
         void OnSuccessfulSwap(Direction direction)
+        {
+            animator.SetInteger(SuccessDirectionParam, (int)direction);
+            animator.SetTrigger(SuccessTrigger);
+        }
+
+        //Called by animator
+        public void RefreshPosition()
         {
             transform.localPosition = new Vector3(model.X * Size, model.Y * Size);
             gameObject.name = $"Tile {model.X} {model.Y}";
