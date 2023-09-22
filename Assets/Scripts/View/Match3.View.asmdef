@@ -1,0 +1,16 @@
+{
+    "name": "Match3.View",
+    "rootNamespace": "Match3.View",
+    "references": [
+        "GUID:188d3e6d968a04591b5fcdd6e197d826"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
