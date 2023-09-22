@@ -31,6 +31,7 @@ namespace Match3.View
 
             model.OnSuccessfulSwap += OnSuccessfulSwap;
             model.OnFailedSwap += OnFailedSwap;
+            model.OnMatch += OnMatch;
         }
 
         void OnSuccessfulSwap(Direction direction)
@@ -49,6 +50,11 @@ namespace Match3.View
         void OnFailedSwap(Direction direction)
         {
             animator.SetTrigger(FailTrigger);
+        }
+
+        void OnMatch()
+        {
+            Destroy(gameObject);
         }
 
         void TrySwap(Direction direction)

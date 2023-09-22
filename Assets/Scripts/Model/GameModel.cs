@@ -25,5 +25,17 @@ namespace Match3.Model
                 }
             }
         }
+
+        public TileModel GetTileAtDirection(Vector2Int position, Direction direction)
+        {
+            return direction switch
+            {
+                Direction.Top => position.y < Tiles.GetLength(1) - 1 ? Tiles[position.x, position.y + 1] : null,
+                Direction.Down => position.y > 0 ? Tiles[position.x, position.y - 1] : null,
+                Direction.Left => position.x > 0 ? Tiles[position.x - 1, position.y] : null,
+                Direction.Right => position.x < Tiles.GetLength(0) - 1 ? Tiles[position.x + 1, position.y] : null,
+                _ => null,
+            };
+        }
     }
 }
