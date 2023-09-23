@@ -16,15 +16,13 @@ namespace Match3.Model
         {
             this.colors = colors;
             Tiles = new TileModel[width, height];
-
-            PopulateGrid();
         }
 
-        void PopulateGrid()
+        public void PopulateGrid()
         {
             for (int x = 0; x < Tiles.GetLength(0); x++)
                 for (int y = 0; y < Tiles.GetLength(1); y++)
-                    SpawnTile(x, y, y);
+                    SpawnTile(x, y, Tiles.GetLength(1) + y);
         }
 
         public void ClearTiles(List<TileModel> tiles)

@@ -30,14 +30,7 @@ namespace Match3.View
 
             mainCamera.orthographicSize = (Mathf.Max(width, height) * 1.2f) * TileView.Size; //TODO: Make it take into account the screen aspect ratio
 
-            for (var x = 0; x < model.Tiles.GetLength(0); x++)
-            {
-                for (var y = 0; y < model.Tiles.GetLength(1); y++)
-                {
-                    var tileModel = model.Tiles[x, y];
-                    SpawnTileView(tileModel, y);
-                }
-            }
+            model.PopulateGrid();
         }
 
         void SpawnTileView(TileModel tileModel, int spawnY)
