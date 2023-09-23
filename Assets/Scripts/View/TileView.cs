@@ -1,5 +1,4 @@
 
-using System.Collections.Generic;
 using Match3.Model;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -11,6 +10,7 @@ namespace Match3.View
         public const float Size = 2.56f;
         const string SuccessTrigger = "Success";
         const string FailTrigger = "Fail";
+        const string MatchTrigger = "Match";
         const string SuccessDirectionParam = "Success Direction";
 
         [SerializeField] SpriteRenderer spriteRenderer;
@@ -58,13 +58,18 @@ namespace Match3.View
 
         void OnMatch()
         {
+            animator.SetTrigger(MatchTrigger);
+        }
+
+        //Called by animator
+        void Destroy()
+        {
             Destroy(gameObject);
         }
 
         void OnFall(int oldY, int newY)
         {
-            transform.localPosition = new Vector3(model.X * Size, model.Y * Size);
-            gameObject.name = $"Tile {model.X} {model.Y}";
+            RefreshPosition();
         }
 
         void TrySwap(Direction direction)
