@@ -8,20 +8,20 @@ namespace Match3.Model
     {
         public event Action<Direction> OnSuccessfulSwap;
         public event Action<Direction> OnFailedSwap;
-        public event Action OnMatch;
+        public event Action<bool, List<TileModel>> OnMatch;
         public event Action<int, int> OnFall;
 
         public int X { get; private set; }
         public int Y { get; private set; }
         public int Color { get; private set; }
 
-        GameModel gameModel;
+        public GameModel GameModel { get; private set; }
 
         Vector2Int Position => new(X, Y);
 
         public TileModel(GameModel gameModel, int x, int y, int color)
         {
-            this.gameModel = gameModel;
+            GameModel = gameModel;
             X = x;
             Y = y;
             Color = color;
@@ -50,7 +50,7 @@ namespace Match3.Model
                 var lastTile = this;
                 while (true)
                 {
-                    var otherTile = gameModel.GetTileAtDirection(lastTile.Position, direction);
+                    var otherTile = GameModel.GetTileAtDirection(lastTile.Position, direction);
                     if (otherTile != null && otherTile.Color == Color && otherTile != this)
                     {
                         collection.Add(otherTile);
@@ -71,9 +71,7 @@ namespace Match3.Model
             matches.Add(this);
 
             foreach (var match in matches)
-                match.OnMatch?.Invoke();
-
-            gameModel.ClearTiles(matches);
+                match.OnMatch?.Invoke(match == this, matches);
         }
 
         public void TryFall()
@@ -82,7 +80,7 @@ namespace Match3.Model
             var targetY = Y;
             for (var checkY = Y - 1; checkY >= 0; checkY--)
             {
-                var tile = gameModel.Tiles[X, checkY];
+                var tile = GameModel.Tiles[X, checkY];
                 if (tile != null)
                     break;
 
@@ -92,16 +90,16 @@ namespace Match3.Model
             if (targetY == Y)
                 return;
 
-            gameModel.Tiles[X, oldY] = null;
+            GameModel.Tiles[X, oldY] = null;
             Y = targetY;
-            gameModel.Tiles[X, targetY] = this;
+            GameModel.Tiles[X, targetY] = this;
 
             OnFall?.Invoke(oldY, targetY);
         }
 
         public void TrySwap(Direction direction)
         {
-            var other = gameModel.GetTileAtDirection(new(X, Y), direction);
+            var other = GameModel.GetTileAtDirection(new(X, Y), direction);
             if (other == null)
             {
                 OnFailedSwap?.Invoke(direction);
@@ -126,8 +124,8 @@ namespace Match3.Model
 
             if (Mathf.Abs(X - other.X) + Mathf.Abs(Y - other.Y) == 1)
             {
-                gameModel.Tiles[X, Y] = this;
-                gameModel.Tiles[other.X, other.Y] = other;
+                GameModel.Tiles[X, Y] = this;
+                GameModel.Tiles[other.X, other.Y] = other;
                 other.OnSuccessfulSwap?.Invoke(direction.GetOpposite());
                 OnSuccessfulSwap?.Invoke(direction);
                 return;

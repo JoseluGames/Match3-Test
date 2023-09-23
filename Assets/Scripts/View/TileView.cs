@@ -1,5 +1,6 @@
 
 using System.Collections;
+using System.Collections.Generic;
 using Match3.Model;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -24,6 +25,9 @@ namespace Match3.View
         bool hasMoved;
 
         Vector2 dragStart;
+
+        bool isMatchMaster;
+        List<TileModel> pendingMatches;
 
         public void Setup(TileModel model, int spawnY)
         {
@@ -65,14 +69,25 @@ namespace Match3.View
             animator.SetTrigger(FailTrigger);
         }
 
-        void OnMatch()
+        void OnMatch(bool isMasterTile, List<TileModel> matches)
         {
+            isMatchMaster = isMasterTile;
+            pendingMatches = matches;
+
             animator.SetTrigger(MatchTrigger);
         }
 
         //Called by animator
-        void Destroy()
+        void EndMatch()
         {
+            if (isMatchMaster)
+            {
+                model.GameModel.ClearTiles(pendingMatches);
+
+                isMatchMaster = false;
+                pendingMatches = null;
+            }
+
             Destroy(gameObject);
         }
 
