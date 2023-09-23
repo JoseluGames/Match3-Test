@@ -35,16 +35,16 @@ namespace Match3.View
                 for (var y = 0; y < model.Tiles.GetLength(1); y++)
                 {
                     var tileModel = model.Tiles[x, y];
-                    SpawnTileView(tileModel);
+                    SpawnTileView(tileModel, y);
                 }
             }
         }
 
-        void SpawnTileView(TileModel tileModel)
+        void SpawnTileView(TileModel tileModel, int spawnY)
         {
             var tileView = Instantiate(tilePrefab, tilesContainer);
             tileView.gameObject.name = $"Tile {tileModel.X} {tileModel.Y}";
-            tileView.Setup(tileModel);
+            tileView.Setup(tileModel, spawnY);
             tiles[tileModel.X, tileModel.Y] = tileView;
         }
     }

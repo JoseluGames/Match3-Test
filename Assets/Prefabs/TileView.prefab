@@ -141,6 +141,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: a961910c3cca84adeb7d1f410f8383d4, type: 3}
   dragSensitivity: 2
   animator: {fileID: 2158477713627525505}
+  fallSpeed: 10
 --- !u!61 &3835971033298957638
 BoxCollider2D:
   m_ObjectHideFlags: 0

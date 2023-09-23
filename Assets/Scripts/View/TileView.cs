@@ -1,4 +1,5 @@
 
+using System.Collections;
 using Match3.Model;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -17,16 +18,24 @@ namespace Match3.View
         [SerializeField] Sprite[] sprites;
         [SerializeField] float dragSensitivity;
         [SerializeField] Animator animator;
+        [SerializeField] float fallSpeed;
 
         TileModel model;
         bool hasMoved;
 
         Vector2 dragStart;
 
-        public void Setup(TileModel model)
+        public void Setup(TileModel model, int spawnY)
         {
-            transform.localPosition = new Vector3(model.X * Size, model.Y * Size);
             this.model = model;
+
+            if (spawnY == model.Y)
+                transform.localPosition = new Vector3(model.X * Size, model.Y * Size);
+            else
+            {
+                transform.localPosition = new Vector3(model.X * Size, spawnY * Size);
+                StartCoroutine(FallRoutine(spawnY, model.Y));
+            }
 
             spriteRenderer.sprite = sprites[model.Color];
 
@@ -43,7 +52,7 @@ namespace Match3.View
         }
 
         //Called by animator
-        public void RefreshPosition()
+        void RefreshPosition()
         {
             transform.localPosition = new Vector3(model.X * Size, model.Y * Size);
             gameObject.name = $"Tile {model.X} {model.Y}";
@@ -69,6 +78,21 @@ namespace Match3.View
 
         void OnFall(int oldY, int newY)
         {
+            StartCoroutine(FallRoutine(oldY, newY));
+        }
+
+        IEnumerator FallRoutine(int startY, int endY)
+        {
+            var distance = startY - endY;
+            var duration = distance / fallSpeed;
+            var t = 0f;
+            while (t < duration)
+            {
+                t += Time.deltaTime;
+                transform.localPosition = new Vector3(model.X * Size, Mathf.Lerp(startY, endY, t / duration) * Size);
+                yield return null;
+            }
+
             RefreshPosition();
         }
 

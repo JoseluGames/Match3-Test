@@ -6,7 +6,7 @@ namespace Match3.Model
 {
     public class GameModel
     {
-        public event Action<TileModel> OnTileSpawned;
+        public event Action<TileModel, int> OnTileSpawned;
 
         int colors;
 
@@ -23,12 +23,8 @@ namespace Match3.Model
         void PopulateGrid()
         {
             for (int x = 0; x < Tiles.GetLength(0); x++)
-            {
                 for (int y = 0; y < Tiles.GetLength(1); y++)
-                {
-                    Tiles[x, y] = new TileModel(this, x, y, GetValidColorForPosition(x, y));
-                }
-            }
+                    SpawnTile(x, y, y);
         }
 
         public void ClearTiles(List<TileModel> tiles)
@@ -41,16 +37,24 @@ namespace Match3.Model
                     Tiles[x, y]?.TryFall();
 
             for (var x = 0; x < Tiles.GetLength(0); x++)
+            {
+                var lowerEmptyY = Tiles.GetLength(1);
                 for (var y = 0; y < Tiles.GetLength(1); y++)
                     if (Tiles[x, y] == null)
-                        SpawnTile(x, y);
+                    {
+                        if (y < lowerEmptyY)
+                            lowerEmptyY = y;
+
+                        SpawnTile(x, y, Tiles.GetLength(1) + y - lowerEmptyY);
+                    }
+            }
         }
 
-        public void SpawnTile(int x, int y)
+        public void SpawnTile(int x, int y, int spawnY)
         {
             var tile = new TileModel(this, x, y, GetValidColorForPosition(x, y));
             Tiles[x, y] = tile;
-            OnTileSpawned?.Invoke(tile);
+            OnTileSpawned?.Invoke(tile, spawnY);
         }
 
         int GetValidColorForPosition(int x, int y)
