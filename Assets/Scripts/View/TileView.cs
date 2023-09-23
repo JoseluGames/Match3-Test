@@ -33,6 +33,7 @@ namespace Match3.View
             model.OnSuccessfulSwap += OnSuccessfulSwap;
             model.OnFailedSwap += OnFailedSwap;
             model.OnMatch += OnMatch;
+            model.OnFall += OnFall;
         }
 
         void OnSuccessfulSwap(Direction direction)
@@ -58,6 +59,12 @@ namespace Match3.View
         void OnMatch()
         {
             Destroy(gameObject);
+        }
+
+        void OnFall(int oldY, int newY)
+        {
+            transform.localPosition = new Vector3(model.X * Size, model.Y * Size);
+            gameObject.name = $"Tile {model.X} {model.Y}";
         }
 
         void TrySwap(Direction direction)

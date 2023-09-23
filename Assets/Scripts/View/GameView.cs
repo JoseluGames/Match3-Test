@@ -22,6 +22,8 @@ namespace Match3.View
         void Start()
         {
             model = new GameModel(width, height, colors);
+            model.OnTileSpawned += SpawnTileView;
+
             tiles = new TileView[width, height];
             background.size = new Vector2(width * TileView.Size, height * TileView.Size);
             tilesContainer.transform.position = new Vector3(-background.size.x / 2 + TileView.Size / 2, -background.size.y / 2 + TileView.Size / 2);
@@ -33,12 +35,17 @@ namespace Match3.View
                 for (var y = 0; y < model.Tiles.GetLength(1); y++)
                 {
                     var tileModel = model.Tiles[x, y];
-                    var tileView = Instantiate(tilePrefab, tilesContainer);
-                    tileView.gameObject.name = $"Tile {x} {y}";
-                    tileView.Setup(tileModel);
-                    tiles[x, y] = tileView;
+                    SpawnTileView(tileModel);
                 }
             }
+        }
+
+        void SpawnTileView(TileModel tileModel)
+        {
+            var tileView = Instantiate(tilePrefab, tilesContainer);
+            tileView.gameObject.name = $"Tile {tileModel.X} {tileModel.Y}";
+            tileView.Setup(tileModel);
+            tiles[tileModel.X, tileModel.Y] = tileView;
         }
     }
 }

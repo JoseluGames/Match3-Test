@@ -9,6 +9,7 @@ namespace Match3.Model
         public event Action<Direction> OnSuccessfulSwap;
         public event Action<Direction> OnFailedSwap;
         public event Action OnMatch;
+        public event Action<int, int> OnFall;
 
         public int X { get; private set; }
         public int Y { get; private set; }
@@ -70,10 +71,32 @@ namespace Match3.Model
             matches.Add(this);
 
             foreach (var match in matches)
-            {
-                gameModel.Tiles[match.X, match.Y] = null;
                 match.OnMatch?.Invoke();
+
+            gameModel.ClearTiles(matches);
+        }
+
+        public void TryFall()
+        {
+            var oldY = Y;
+            var targetY = Y;
+            for (var checkY = Y - 1; checkY >= 0; checkY--)
+            {
+                var tile = gameModel.Tiles[X, checkY];
+                if (tile != null)
+                    break;
+
+                targetY = checkY;
             }
+
+            if (targetY == Y)
+                return;
+
+            gameModel.Tiles[X, oldY] = null;
+            Y = targetY;
+            gameModel.Tiles[X, targetY] = this;
+
+            OnFall?.Invoke(oldY, targetY);
         }
 
         public void TrySwap(Direction direction)

@@ -1,11 +1,16 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Match3.Model
 {
     public class GameModel
     {
-        public TileModel[,] Tiles { get; private set; }
+        public event Action<TileModel> OnTileSpawned;
+
         int colors;
+
+        public TileModel[,] Tiles { get; private set; }
 
         public GameModel(int width, int height, int colors)
         {
@@ -21,9 +26,31 @@ namespace Match3.Model
             {
                 for (int y = 0; y < Tiles.GetLength(1); y++)
                 {
-                    Tiles[x, y] = new TileModel(this, x, y, Random.Range(0, colors));
+                    Tiles[x, y] = new TileModel(this, x, y, UnityEngine.Random.Range(0, colors));
                 }
             }
+        }
+
+        public void ClearTiles(List<TileModel> tiles)
+        {
+            foreach (var tile in tiles)
+                Tiles[tile.X, tile.Y] = null;
+
+            for (var x = 0; x < Tiles.GetLength(0); x++)
+                for (var y = 0; y < Tiles.GetLength(1); y++)
+                    Tiles[x, y]?.TryFall();
+
+            for (var x = 0; x < Tiles.GetLength(0); x++)
+                for (var y = 0; y < Tiles.GetLength(1); y++)
+                    if (Tiles[x, y] == null)
+                        SpawnTile(x, y);
+        }
+
+        public void SpawnTile(int x, int y)
+        {
+            var tile = new TileModel(this, x, y, UnityEngine.Random.Range(0, colors));
+            Tiles[x, y] = tile;
+            OnTileSpawned?.Invoke(tile);
         }
 
         public TileModel GetTileAtDirection(Vector2Int position, Direction direction)
