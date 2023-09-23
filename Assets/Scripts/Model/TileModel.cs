@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 namespace Match3.Model
 {
@@ -17,6 +18,13 @@ namespace Match3.Model
 
         public GameModel GameModel { get; private set; }
 
+        readonly Dictionary<Direction, TileModel> validSwaps = new() {
+            {Direction.Top, null},
+            {Direction.Down, null},
+            {Direction.Left, null},
+            {Direction.Right, null}
+        };
+
         Vector2Int Position => new(X, Y);
 
         public TileModel(GameModel gameModel, int x, int y, int color)
@@ -25,6 +33,35 @@ namespace Match3.Model
             X = x;
             Y = y;
             Color = color;
+        }
+
+        public void RefreshValidSwaps()
+        {
+            foreach (var direction in Enum.GetValues(typeof(Direction)).Cast<Direction>())
+            {
+                validSwaps[direction] = null;
+
+                var other = GameModel.GetTileAtDirection(new(X, Y), direction);
+                if (other == null)
+                    continue;
+
+                var posA = Position;
+                var posB = other.Position;
+                X = other.X;
+                Y = other.Y;
+                other.X = posA.x;
+                other.Y = posA.y;
+
+                var matchesA = GetMatches();
+                var matchesB = other.GetMatches();
+                if (matchesA.Count > 0 || matchesB.Count > 0)
+                    validSwaps[direction] = other;
+
+                X = posA.x;
+                Y = posA.y;
+                other.X = posB.x;
+                other.Y = posB.y;
+            }
         }
 
         List<TileModel> GetMatches()
@@ -48,7 +85,8 @@ namespace Match3.Model
             void CollectInDirection(Direction direction, List<TileModel> collection)
             {
                 var lastTile = this;
-                while (true)
+                var axisLength = direction == Direction.Left || direction == Direction.Right ? GameModel.Tiles.GetLength(0) : GameModel.Tiles.GetLength(1);
+                for (var i = 0; i < axisLength; i++)
                 {
                     var otherTile = GameModel.GetTileAtDirection(lastTile.Position, direction);
                     if (otherTile != null && otherTile.Color == Color && otherTile != this)
@@ -93,13 +131,14 @@ namespace Match3.Model
             GameModel.Tiles[X, oldY] = null;
             Y = targetY;
             GameModel.Tiles[X, targetY] = this;
+            RefreshValidSwaps();
 
             OnFall?.Invoke(oldY, targetY);
         }
 
         public void TrySwap(Direction direction)
         {
-            var other = GameModel.GetTileAtDirection(new(X, Y), direction);
+            var other = validSwaps[direction];
             if (other == null)
             {
                 OnFailedSwap?.Invoke(direction);
@@ -113,34 +152,14 @@ namespace Match3.Model
             other.X = posA.x;
             other.Y = posA.y;
 
-            var matchesA = GetMatches();
-            var matchesB = other.GetMatches();
-            if (matchesA.Count == 0 && matchesB.Count == 0)
-            {
-                RevertPositions();
-                OnFailedSwap?.Invoke(direction);
-                return;
-            }
+            GameModel.Tiles[X, Y] = this;
+            RefreshValidSwaps();
 
-            if (Mathf.Abs(X - other.X) + Mathf.Abs(Y - other.Y) == 1)
-            {
-                GameModel.Tiles[X, Y] = this;
-                GameModel.Tiles[other.X, other.Y] = other;
-                other.OnSuccessfulSwap?.Invoke(direction.GetOpposite());
-                OnSuccessfulSwap?.Invoke(direction);
-                return;
-            }
+            GameModel.Tiles[other.X, other.Y] = other;
+            other.RefreshValidSwaps();
 
-            RevertPositions();
-            OnFailedSwap?.Invoke(direction);
-
-            void RevertPositions()
-            {
-                X = posA.x;
-                Y = posA.y;
-                other.X = posB.x;
-                other.Y = posB.y;
-            }
+            other.OnSuccessfulSwap?.Invoke(direction.GetOpposite());
+            OnSuccessfulSwap?.Invoke(direction);
         }
     }
 }

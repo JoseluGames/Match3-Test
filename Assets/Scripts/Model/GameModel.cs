@@ -23,6 +23,10 @@ namespace Match3.Model
             for (int x = 0; x < Tiles.GetLength(0); x++)
                 for (int y = 0; y < Tiles.GetLength(1); y++)
                     SpawnTile(x, y, Tiles.GetLength(1) + y);
+
+            for (int x = 0; x < Tiles.GetLength(0); x++)
+                for (int y = 0; y < Tiles.GetLength(1); y++)
+                    Tiles[x, y].RefreshValidSwaps();
         }
 
         public void ClearTiles(List<TileModel> tiles)
@@ -46,6 +50,10 @@ namespace Match3.Model
                         SpawnTile(x, y, Tiles.GetLength(1) + y - lowerEmptyY);
                     }
             }
+
+            for (int x = 0; x < Tiles.GetLength(0); x++)
+                for (int y = 0; y < Tiles.GetLength(1); y++)
+                    Tiles[x, y].RefreshValidSwaps();
         }
 
         public void SpawnTile(int x, int y, int spawnY)
