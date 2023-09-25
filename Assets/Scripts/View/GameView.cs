@@ -14,15 +14,16 @@ namespace Match3.View
         [SerializeField] SpriteRenderer background;
 
         [SerializeField] Camera mainCamera;
+        [SerializeField] float timeScale;
 
-        GameModel model;
+        public GameModel Model { get; set; }
 
         TileView[,] tiles;
 
         void Start()
         {
-            model = new GameModel(width, height, colors);
-            model.OnTileSpawned += SpawnTileView;
+            Model = new GameModel(width, height, colors);
+            Model.OnTileSpawned += SpawnTileView;
 
             tiles = new TileView[width, height];
             background.size = new Vector2(width * TileView.Size, height * TileView.Size);
@@ -30,7 +31,12 @@ namespace Match3.View
 
             mainCamera.orthographicSize = (Mathf.Max(width, height) * 1.2f) * TileView.Size; //TODO: Make it take into account the screen aspect ratio
 
-            model.PopulateGrid();
+            Model.PopulateGrid();
+        }
+
+        void Update()
+        {
+            Time.timeScale = timeScale;
         }
 
         void SpawnTileView(TileModel tileModel, int spawnY)

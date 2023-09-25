@@ -3,6 +3,8 @@
     "rootNamespace": "Match3.Debugger",
     "references": [
         "GUID:188d3e6d968a04591b5fcdd6e197d826",
+        "GUID:1b9bd5a1d219a4471a9ad0ded704235b",
+        "GUID:739acc6e514b24a56a0bb751e30cd90f",
         "GUID:6055be8ebefd69e48b49212b09b47b2f"
     ],
     "includePlatforms": [],

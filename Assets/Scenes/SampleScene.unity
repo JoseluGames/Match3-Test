@@ -959,6 +959,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   movesInput: {fileID: 194509539}
+  gameView: {fileID: 2004818996}
 --- !u!1 &1339272098
 GameObject:
   m_ObjectHideFlags: 0
@@ -1438,6 +1439,7 @@ MonoBehaviour:
   tilesContainer: {fileID: 1740796430}
   background: {fileID: 309625565}
   mainCamera: {fileID: 519420031}
+  timeScale: 1
 --- !u!1 &2005653315
 GameObject:
   m_ObjectHideFlags: 0

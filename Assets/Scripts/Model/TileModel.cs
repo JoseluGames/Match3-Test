@@ -12,18 +12,20 @@ namespace Match3.Model
         public event Action<bool, List<TileModel>> OnMatch;
         public event Action<int, int> OnFall;
 
-        public int X { get; private set; }
-        public int Y { get; private set; }
-        public int Color { get; private set; }
-
-        public GameModel GameModel { get; private set; }
-
         readonly Dictionary<Direction, TileModel> validSwaps = new() {
             {Direction.Top, null},
             {Direction.Down, null},
             {Direction.Left, null},
             {Direction.Right, null}
         };
+
+        public int X { get; private set; }
+        public int Y { get; private set; }
+        public int Color { get; private set; }
+
+        public GameModel GameModel { get; private set; }
+        public bool IsSwappable => validSwaps.Any(kvp => kvp.Value != null);
+        public Dictionary<Direction, TileModel> ValidSwaps => validSwaps;
 
         Vector2Int Position => new(X, Y);
 
