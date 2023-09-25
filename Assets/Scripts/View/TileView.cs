@@ -28,7 +28,6 @@ namespace Match3.View
         bool hasMoved;
         Vector2 dragStart;
 
-        bool inputActive;
         bool readyToMatch;
         public bool IsBusy { get; private set; }
         GameView gameView;
@@ -40,11 +39,7 @@ namespace Match3.View
             this.gameView = gameView;
             Model = model;
 
-            inputActive = true;
             transform.localPosition = new Vector3(model.X * Size, spawnY * Size);
-
-            if (spawnY == model.Y)
-                gameView.ViewsGrid[model.X, model.Y] = this;
 
             spriteRenderer.sprite = sprites[model.Color];
 
@@ -60,18 +55,15 @@ namespace Match3.View
             {
                 if (pendingActions.Count == 0)
                 {
+                    IsBusy = false;
                     yield return null;
                     continue;
                 }
 
-                inputActive = false;
                 IsBusy = true;
                 var action = pendingActions.Dequeue();
-                StartCoroutine(ResolveAction(action));
-                yield return null;
+                yield return StartCoroutine(ResolveAction(action));
                 yield return new WaitUntil(() => animator.GetCurrentAnimatorStateInfo(0).IsName("Idle"));
-                IsBusy = false;
-                inputActive = true;
             }
         }
 
@@ -82,6 +74,7 @@ namespace Match3.View
                 case SwapAction swapAction:
                     if (swapAction.Successful)
                     {
+                        transform.localPosition = new Vector3(swapAction.TargetPos.x * Size, swapAction.TargetPos.y * Size);
                         animator.SetInteger(SuccessDirectionParam, (int)swapAction.Direction);
                         animator.SetTrigger(SuccessTrigger);
                     }
@@ -92,13 +85,11 @@ namespace Match3.View
                     readyToMatch = true;
                     yield return new WaitUntil(() => matchAction.Companions.All(c => c.readyToMatch));
                     animator.SetTrigger(MatchTrigger);
+                    yield return new WaitUntil(() => animator.GetCurrentAnimatorStateInfo(0).IsName("Match"));
                     break;
-                case FallAction _:
-                    inputActive = false;
-                    gameView.ViewsGrid[Model.X, Model.Y] = this;
-
+                case FallAction fallAction:
                     var startY = transform.localPosition.y;
-                    var endY = Model.Y * Size;
+                    var endY = fallAction.EndY * Size;
 
                     var distance = startY - endY;
                     var duration = distance / fallSpeed;
@@ -110,15 +101,14 @@ namespace Match3.View
                         yield return null;
                     }
 
-                    RefreshPosition();
-                    inputActive = true;
+                    transform.localPosition = new Vector3(Model.X * Size, endY);
                     break;
             }
         }
 
         void IBeginDragHandler.OnBeginDrag(PointerEventData eventData)
         {
-            if (!inputActive)
+            if (IsBusy)
                 return;
 
             hasMoved = false;
@@ -127,7 +117,7 @@ namespace Match3.View
 
         void IDragHandler.OnDrag(PointerEventData eventData)
         {
-            if (!inputActive)
+            if (IsBusy)
                 return;
 
             if (hasMoved)
@@ -156,7 +146,7 @@ namespace Match3.View
 
         void OnSuccessfulSwap(Direction direction)
         {
-            pendingActions.Enqueue(new SwapAction { Successful = true, Direction = direction });
+            pendingActions.Enqueue(new SwapAction { Successful = true, Direction = direction, TargetPos = new Vector2Int(Model.X, Model.Y) });
         }
 
         public void Match(List<TileView> companions)
@@ -166,22 +156,14 @@ namespace Match3.View
 
         public void Fall()
         {
-            pendingActions.Enqueue(new FallAction());
+            pendingActions.Enqueue(new FallAction { EndY = Model.Y });
         }
 
         //Called by animator
         void EndMatch()
         {
             Destroy(gameObject);
-            gameView.ViewsGrid[Model.X, Model.Y] = null;
             gameView.ViewList.Remove(this);
-        }
-
-        //Called by animator
-        void RefreshPosition()
-        {
-            transform.localPosition = new Vector3(Model.X * Size, Model.Y * Size);
-            gameObject.name = $"Tile {Model.X} {Model.Y}";
         }
     }
 }

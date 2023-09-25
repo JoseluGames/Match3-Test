@@ -7,8 +7,7 @@ namespace Match3.Model
     public class GameModel
     {
         public event Action<TileModel, int> OnTileSpawned;
-        public event Action<List<List<TileModel>>> OnMatchesResolved;
-        public event Action<List<TileModel>> OnTilesFalling;
+        public event Action<List<List<TileModel>>, List<TileModel>> OnBoardEvaluated;
 
         int colors;
 
@@ -32,7 +31,7 @@ namespace Match3.Model
                 for (int y = 0; y < Tiles.GetLength(1); y++)
                     Tiles[x, y].RefreshValidSwaps();
 
-            OnTilesFalling?.Invoke(fallingTiles);
+            OnBoardEvaluated?.Invoke(new(), fallingTiles);
         }
 
         public void EvaluateMatches()
@@ -56,12 +55,6 @@ namespace Match3.Model
                     }
                 }
 
-            OnMatchesResolved?.Invoke(matches);
-            SpawnAndFall();
-        }
-
-        void SpawnAndFall()
-        {
             var fallingTiles = new List<TileModel>();
 
             for (var x = 0; x < Tiles.GetLength(0); x++)
@@ -90,7 +83,7 @@ namespace Match3.Model
                 for (int y = 0; y < Tiles.GetLength(1); y++)
                     Tiles[x, y].RefreshValidSwaps();
 
-            OnTilesFalling?.Invoke(fallingTiles);
+            OnBoardEvaluated?.Invoke(matches, fallingTiles);
         }
 
         public TileModel SpawnTile(int x, int y, int spawnY)

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Match3.Model;
+using UnityEngine;
 
 namespace Match3.View.Action
 {
@@ -9,6 +10,7 @@ namespace Match3.View.Action
     {
         public bool Successful;
         public Direction Direction;
+        public Vector2Int TargetPos;
     }
 
     public class MatchAction : TileAction
@@ -16,5 +18,8 @@ namespace Match3.View.Action
         public List<TileView> Companions;
     }
 
-    public class FallAction : TileAction { }
+    public class FallAction : TileAction
+    {
+        public int EndY;
+    }
 }

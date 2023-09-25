@@ -23,8 +23,6 @@ namespace Match3.View
 
         public GameModel Model { get; set; }
 
-        public TileView[,] ViewsGrid { get; private set; }
-
         void Update()
         {
             Time.timeScale = timeScale;
@@ -34,10 +32,8 @@ namespace Match3.View
         {
             Model = new GameModel(width, height, colors);
             Model.OnTileSpawned += SpawnTileView;
-            Model.OnMatchesResolved += OnMatchesResolved;
-            Model.OnTilesFalling += OnTilesFalling;
+            Model.OnBoardEvaluated += OnBoardEvaluated;
 
-            ViewsGrid = new TileView[width, height];
             background.size = new Vector2(width * TileView.Size, height * TileView.Size);
             tilesContainer.transform.position = new Vector3(-background.size.x / 2 + TileView.Size / 2, -background.size.y / 2 + TileView.Size / 2);
 
@@ -54,50 +50,46 @@ namespace Match3.View
             ViewList.Add(tileView);
         }
 
-        void OnMatchesResolved(List<List<TileModel>> matches)
+        void OnBoardEvaluated(List<List<TileModel>> matches, List<TileModel> fallingTiles)
         {
-            StartCoroutine(ResolveMatches(matches));
+            StartCoroutine(EvaluateBoardRoutine(matches, fallingTiles));
         }
 
-        IEnumerator ResolveMatches(List<List<TileModel>> matches)
+        IEnumerator EvaluateBoardRoutine(List<List<TileModel>> matches, List<TileModel> fallingTiles)
         {
-            yield return null;
-            yield return new WaitUntil(() => ViewList.All(tv => !tv.IsBusy));
-
-            foreach (var match in matches)
+            if (matches.Count > 0)
             {
-                var views = new List<TileView>();
-                foreach (var tile in match)
+                yield return null;
+                yield return new WaitWhile(() => ViewList.Any(tv => tv.IsBusy));
+
+                var matchingViews = new List<TileView>();
+                foreach (var match in matches)
                 {
-                    var view = ViewList.FirstOrDefault(tv => tv.Model == tile);
-                    views.Add(view);
+                    foreach (var tile in match)
+                    {
+                        var view = ViewList.FirstOrDefault(tv => tv.Model == tile);
+                        matchingViews.Add(view);
+                    }
                 }
 
-                foreach (var view in views)
-                    view.Match(views);
+                foreach (var view in matchingViews)
+                    view.Match(matchingViews);
             }
-        }
 
-        void OnTilesFalling(List<TileModel> fallingTiles)
-        {
-            StartCoroutine(FallTiles(fallingTiles));
-        }
-
-        IEnumerator FallTiles(List<TileModel> fallingTiles)
-        {
-            if (fallingTiles.Count == 0)
-                yield break;
-
-            yield return null;
-            yield return new WaitUntil(() => ViewList.All(tv => !tv.IsBusy));
-
-            foreach (var tile in fallingTiles)
+            if (fallingTiles.Count > 0)
             {
-                var view = ViewList.FirstOrDefault(tv => tv.Model == tile);
-                view.Fall();
+                yield return null;
+                yield return new WaitWhile(() => ViewList.Any(tv => tv.IsBusy));
+
+                foreach (var tile in fallingTiles)
+                {
+                    var view = ViewList.FirstOrDefault(tv => tv.Model == tile);
+                    view.Fall();
+                }
             }
 
-            Model.EvaluateMatches();
+            if (matches.Count > 0)
+                Model.EvaluateMatches();
         }
     }
 }
