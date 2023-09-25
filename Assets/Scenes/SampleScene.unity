@@ -1439,7 +1439,7 @@ MonoBehaviour:
   tilesContainer: {fileID: 1740796430}
   background: {fileID: 309625565}
   mainCamera: {fileID: 519420031}
-  timeScale: 1
+  timeScale: 0.1
 --- !u!1 &2005653315
 GameObject:
   m_ObjectHideFlags: 0

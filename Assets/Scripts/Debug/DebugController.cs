@@ -23,7 +23,7 @@ namespace Match3.Debugger
             }
 
             var swappableTiles = new List<TileModel>();
-            Time.timeScale = 1;
+            Time.timeScale = 100;
 
             for (var i = 0; i < moves; i++)
             {

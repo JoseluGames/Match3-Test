@@ -1,7 +1,9 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Match3.Model;
+using Match3.View.Action;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -21,37 +23,97 @@ namespace Match3.View
         [SerializeField] Animator animator;
         [SerializeField] float fallSpeed;
 
-        TileModel model;
-        bool hasMoved;
+        Queue<TileAction> pendingActions = new();
 
+        bool hasMoved;
         Vector2 dragStart;
 
-        bool isMatchMaster;
-        List<TileModel> pendingMatches;
-
         bool inputActive;
+        bool readyToMatch;
+        public bool IsBusy { get; private set; }
+        GameView gameView;
 
-        public void Setup(TileModel model, int spawnY)
+        public TileModel Model { get; private set; }
+
+        public void Setup(GameView gameView, TileModel model, int spawnY)
         {
-            this.model = model;
+            this.gameView = gameView;
+            Model = model;
+
+            inputActive = true;
+            transform.localPosition = new Vector3(model.X * Size, spawnY * Size);
 
             if (spawnY == model.Y)
-            {
-                transform.localPosition = new Vector3(model.X * Size, model.Y * Size);
-                inputActive = true;
-            }
-            else
-            {
-                transform.localPosition = new Vector3(model.X * Size, spawnY * Size);
-                StartCoroutine(FallRoutine(spawnY, model.Y));
-            }
+                gameView.ViewsGrid[model.X, model.Y] = this;
 
             spriteRenderer.sprite = sprites[model.Color];
 
             model.OnSuccessfulSwap += OnSuccessfulSwap;
             model.OnFailedSwap += OnFailedSwap;
-            model.OnMatch += OnMatch;
-            model.OnFall += OnFall;
+
+            StartCoroutine(ResolveActions());
+        }
+
+        IEnumerator ResolveActions()
+        {
+            while (true)
+            {
+                if (pendingActions.Count == 0)
+                {
+                    yield return null;
+                    continue;
+                }
+
+                inputActive = false;
+                IsBusy = true;
+                var action = pendingActions.Dequeue();
+                StartCoroutine(ResolveAction(action));
+                yield return null;
+                yield return new WaitUntil(() => animator.GetCurrentAnimatorStateInfo(0).IsName("Idle"));
+                IsBusy = false;
+                inputActive = true;
+            }
+        }
+
+        IEnumerator ResolveAction(TileAction action)
+        {
+            switch (action)
+            {
+                case SwapAction swapAction:
+                    if (swapAction.Successful)
+                    {
+                        animator.SetInteger(SuccessDirectionParam, (int)swapAction.Direction);
+                        animator.SetTrigger(SuccessTrigger);
+                    }
+                    else
+                        animator.SetTrigger(FailTrigger);
+                    break;
+                case MatchAction matchAction:
+                    readyToMatch = true;
+                    yield return new WaitUntil(() => matchAction.Companions.All(c => c.readyToMatch));
+                    animator.SetTrigger(MatchTrigger);
+                    break;
+                case FallAction _:
+                    inputActive = false;
+                    gameView.ViewsGrid[Model.X, Model.Y] = this;
+
+                    var startY = transform.localPosition.y;
+                    var endY = Model.Y * Size;
+
+                    var distance = startY - endY;
+                    var duration = distance / fallSpeed;
+                    var t = 0f;
+                    while (t < duration)
+                    {
+                        t += Time.deltaTime;
+                        transform.localPosition = new Vector3(Model.X * Size, Mathf.Lerp(startY, endY, t / duration));
+                        yield return null;
+                    }
+
+                    RefreshPosition();
+                    inputActive = true;
+                    break;
+            }
         }
 
         void IBeginDragHandler.OnBeginDrag(PointerEventData eventData)
@@ -80,78 +142,46 @@ namespace Match3.View
                 else
                     TrySwap(delta.y > 0 ? Direction.Top : Direction.Down);
             }
+
+            void TrySwap(Direction direction)
+            {
+                Model.TrySwap(direction);
+            }
         }
 
-        void TrySwap(Direction direction)
+        void OnFailedSwap()
         {
-            inputActive = false;
-            model.TrySwap(direction);
-        }
-
-        void OnFailedSwap(Direction direction)
-        {
-            inputActive = true;
-            animator.SetTrigger(FailTrigger);
+            pendingActions.Enqueue(new SwapAction { Successful = false });
         }
 
         void OnSuccessfulSwap(Direction direction)
         {
-            inputActive = false;
-            animator.SetInteger(SuccessDirectionParam, (int)direction);
-            animator.SetTrigger(SuccessTrigger);
+            pendingActions.Enqueue(new SwapAction { Successful = true, Direction = direction });
         }
 
-        void OnMatch(bool isMasterTile, List<TileModel> matches)
+        public void Match(List<TileView> companions)
         {
-            inputActive = false;
-            isMatchMaster = isMasterTile;
-            pendingMatches = matches;
+            pendingActions.Enqueue(new MatchAction { Companions = companions });
+        }
 
-            animator.SetTrigger(MatchTrigger);
+        public void Fall()
+        {
+            pendingActions.Enqueue(new FallAction());
         }
 
         //Called by animator
         void EndMatch()
         {
-            if (isMatchMaster)
-            {
-                model.GameModel.ClearTiles(pendingMatches);
-
-                isMatchMaster = false;
-                pendingMatches = null;
-            }
-
             Destroy(gameObject);
+            gameView.ViewsGrid[Model.X, Model.Y] = null;
+            gameView.ViewList.Remove(this);
         }
 
         //Called by animator
         void RefreshPosition()
         {
-            transform.localPosition = new Vector3(model.X * Size, model.Y * Size);
-            gameObject.name = $"Tile {model.X} {model.Y}";
-
-            inputActive = true;
-            model.ResolveMatch();
-        }
-
-        void OnFall(int oldY, int newY)
-        {
-            StartCoroutine(FallRoutine(oldY, newY));
-        }
-
-        IEnumerator FallRoutine(int startY, int endY)
-        {
-            var distance = startY - endY;
-            var duration = distance / fallSpeed;
-            var t = 0f;
-            while (t < duration)
-            {
-                t += Time.deltaTime;
-                transform.localPosition = new Vector3(model.X * Size, Mathf.Lerp(startY, endY, t / duration) * Size);
-                yield return null;
-            }
-
-            RefreshPosition();
+            transform.localPosition = new Vector3(Model.X * Size, Model.Y * Size);
+            gameObject.name = $"Tile {Model.X} {Model.Y}";
         }
     }
 }

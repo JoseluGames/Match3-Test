@@ -8,9 +8,7 @@ namespace Match3.Model
     public class TileModel
     {
         public event Action<Direction> OnSuccessfulSwap;
-        public event Action<Direction> OnFailedSwap;
-        public event Action<bool, List<TileModel>> OnMatch;
-        public event Action<int, int> OnFall;
+        public event Action OnFailedSwap;
 
         readonly Dictionary<Direction, TileModel> validSwaps = new() {
             {Direction.Top, null},
@@ -49,8 +47,8 @@ namespace Match3.Model
 
                 var posA = Position;
                 var posB = other.Position;
-                X = other.X;
-                Y = other.Y;
+                X = posB.x;
+                Y = posB.y;
                 other.X = posA.x;
                 other.Y = posA.y;
 
@@ -66,7 +64,7 @@ namespace Match3.Model
             }
         }
 
-        List<TileModel> GetMatches()
+        public List<TileModel> GetMatches()
         {
             var matches = new List<TileModel>();
 
@@ -102,19 +100,7 @@ namespace Match3.Model
             }
         }
 
-        public void ResolveMatch()
-        {
-            var matches = GetMatches();
-            if (matches.Count == 0)
-                return;
-
-            matches.Add(this);
-
-            foreach (var match in matches)
-                match.OnMatch?.Invoke(match == this, matches);
-        }
-
-        public void TryFall()
+        public bool TryFall()
         {
             var oldY = Y;
             var targetY = Y;
@@ -128,14 +114,13 @@ namespace Match3.Model
             }
 
             if (targetY == Y)
-                return;
+                return false;
 
             GameModel.Tiles[X, oldY] = null;
             Y = targetY;
             GameModel.Tiles[X, targetY] = this;
-            RefreshValidSwaps();
 
-            OnFall?.Invoke(oldY, targetY);
+            return true;
         }
 
         public void TrySwap(Direction direction)
@@ -143,25 +128,24 @@ namespace Match3.Model
             var other = validSwaps[direction];
             if (other == null)
             {
-                OnFailedSwap?.Invoke(direction);
+                OnFailedSwap?.Invoke();
                 return;
             }
 
             var posA = Position;
             var posB = other.Position;
-            X = other.X;
-            Y = other.Y;
+            X = posB.x;
+            Y = posB.y;
+            GameModel.Tiles[posB.x, posB.y] = this;
+
             other.X = posA.x;
             other.Y = posA.y;
-
-            GameModel.Tiles[X, Y] = this;
-            RefreshValidSwaps();
-
-            GameModel.Tiles[other.X, other.Y] = other;
-            other.RefreshValidSwaps();
+            GameModel.Tiles[posA.x, posA.y] = other;
 
             other.OnSuccessfulSwap?.Invoke(direction.GetOpposite());
             OnSuccessfulSwap?.Invoke(direction);
+
+            GameModel.EvaluateMatches();
         }
     }
 }

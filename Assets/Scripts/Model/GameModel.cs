@@ -7,6 +7,8 @@ namespace Match3.Model
     public class GameModel
     {
         public event Action<TileModel, int> OnTileSpawned;
+        public event Action<List<List<TileModel>>> OnMatchesResolved;
+        public event Action<List<TileModel>> OnTilesFalling;
 
         int colors;
 
@@ -20,23 +22,55 @@ namespace Match3.Model
 
         public void PopulateGrid()
         {
+            var fallingTiles = new List<TileModel>();
+
             for (int x = 0; x < Tiles.GetLength(0); x++)
                 for (int y = 0; y < Tiles.GetLength(1); y++)
-                    SpawnTile(x, y, Tiles.GetLength(1) + y);
+                    fallingTiles.Add(SpawnTile(x, y, Tiles.GetLength(1) + y));
 
             for (int x = 0; x < Tiles.GetLength(0); x++)
                 for (int y = 0; y < Tiles.GetLength(1); y++)
                     Tiles[x, y].RefreshValidSwaps();
+
+            OnTilesFalling?.Invoke(fallingTiles);
         }
 
-        public void ClearTiles(List<TileModel> tiles)
+        public void EvaluateMatches()
         {
-            foreach (var tile in tiles)
-                Tiles[tile.X, tile.Y] = null;
+            var matches = new List<List<TileModel>>();
+            for (int x = 0; x < Tiles.GetLength(0); x++)
+                for (int y = 0; y < Tiles.GetLength(1); y++)
+                {
+                    var tile = Tiles[x, y];
+                    if (tile == null)
+                        continue;
+
+                    var matchesForTile = tile.GetMatches();
+                    if (matchesForTile.Count > 0)
+                    {
+                        matchesForTile.Add(tile);
+                        foreach (var match in matchesForTile)
+                            Tiles[match.X, match.Y] = null;
+
+                        matches.Add(matchesForTile);
+                    }
+                }
+
+            OnMatchesResolved?.Invoke(matches);
+            SpawnAndFall();
+        }
+
+        void SpawnAndFall()
+        {
+            var fallingTiles = new List<TileModel>();
 
             for (var x = 0; x < Tiles.GetLength(0); x++)
                 for (var y = 0; y < Tiles.GetLength(1); y++)
-                    Tiles[x, y]?.TryFall();
+                {
+                    var tile = Tiles[x, y];
+                    if (tile != null && tile.TryFall())
+                        fallingTiles.Add(tile);
+                }
 
             for (var x = 0; x < Tiles.GetLength(0); x++)
             {
@@ -47,20 +81,25 @@ namespace Match3.Model
                         if (y < lowerEmptyY)
                             lowerEmptyY = y;
 
-                        SpawnTile(x, y, Tiles.GetLength(1) + y - lowerEmptyY);
+                        var tile = SpawnTile(x, y, Tiles.GetLength(1) + y - lowerEmptyY);
+                        fallingTiles.Add(tile);
                     }
             }
 
             for (int x = 0; x < Tiles.GetLength(0); x++)
                 for (int y = 0; y < Tiles.GetLength(1); y++)
                     Tiles[x, y].RefreshValidSwaps();
+
+            OnTilesFalling?.Invoke(fallingTiles);
         }
 
-        public void SpawnTile(int x, int y, int spawnY)
+        public TileModel SpawnTile(int x, int y, int spawnY)
         {
             var tile = new TileModel(this, x, y, GetValidColorForPosition(x, y));
             Tiles[x, y] = tile;
             OnTileSpawned?.Invoke(tile, spawnY);
+
+            return tile;
         }
 
         int GetValidColorForPosition(int x, int y)
