@@ -17,16 +17,11 @@ namespace Match3.View
         [SerializeField] SpriteRenderer background;
 
         [SerializeField] Camera mainCamera;
-        [SerializeField] float timeScale;
 
         public List<TileView> ViewList { get; } = new();
 
         public GameModel Model { get; set; }
-
-        void Update()
-        {
-            Time.timeScale = timeScale;
-        }
+        public bool IsBoardBusy { get; private set; }
 
         void Start()
         {
@@ -57,6 +52,7 @@ namespace Match3.View
 
         IEnumerator EvaluateBoardRoutine(List<List<TileModel>> matches, List<TileModel> fallingTiles)
         {
+            IsBoardBusy = true;
             if (matches.Count > 0)
             {
                 yield return null;
@@ -87,6 +83,8 @@ namespace Match3.View
                     view.Fall();
                 }
             }
+
+            IsBoardBusy = false;
 
             if (matches.Count > 0)
                 Model.EvaluateMatches();

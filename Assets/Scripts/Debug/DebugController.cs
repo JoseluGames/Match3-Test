@@ -1,6 +1,6 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Match3.Model;
 using Match3.View;
 using TMPro;
@@ -14,16 +14,21 @@ namespace Match3.Debugger
         [SerializeField] GameView gameView;
 
         //Called from UI
-        public async void SimulateMoves()
+        void SimulateMoves()
+        {
+            StartCoroutine(SimulateMovesRoutine());
+        }
+
+        IEnumerator SimulateMovesRoutine()
         {
             if (!int.TryParse(movesInput.text, out var moves))
             {
                 Debug.LogError("Invalid number of moves");
-                return;
+                yield break;
             }
 
             var swappableTiles = new List<TileModel>();
-            Time.timeScale = 100;
+            Time.timeScale = 1;
 
             for (var i = 0; i < moves; i++)
             {
@@ -42,7 +47,8 @@ namespace Match3.Debugger
                 var direction = targetTile.ValidSwaps.First(kvp => kvp.Value != null).Key;
                 targetTile.TrySwap(direction);
 
-                await Task.Delay(Mathf.CeilToInt(1000 / Time.timeScale));
+                yield return null;
+                yield return new WaitWhile(() => gameView.IsBoardBusy || gameView.ViewList.Any(tv => tv.IsBusy));
             }
 
             Time.timeScale = 1;
