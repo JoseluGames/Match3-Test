@@ -8,9 +8,6 @@ namespace Match3.View
 {
     public class GameView : MonoBehaviour
     {
-        [SerializeField] int width;
-        [SerializeField] int height;
-        [SerializeField] int colors;
         [SerializeField] TileView tilePrefab;
         [SerializeField] Transform tilesContainer;
 
@@ -26,6 +23,22 @@ namespace Match3.View
 
         void Start()
         {
+            NewBoard(5, 5, 3);
+        }
+
+        public void NewBoard(int width, int height, int colors)
+        {
+            foreach (var view in ViewList)
+                Destroy(view.gameObject);
+
+            ViewList.Clear();
+
+            if (Model != null)
+            {
+                Model.OnTileSpawned -= SpawnTileView;
+                Model.OnBoardEvaluated -= OnBoardEvaluated;
+            }
+
             Model = new GameModel(width, height, colors);
             Model.OnTileSpawned += SpawnTileView;
             Model.OnBoardEvaluated += OnBoardEvaluated;
@@ -66,7 +79,8 @@ namespace Match3.View
                     foreach (var tile in match)
                     {
                         var view = ViewList.FirstOrDefault(tv => tv.Model == tile);
-                        matchingViews.Add(view);
+                        if (view != null)
+                            matchingViews.Add(view);
                     }
                 }
 
@@ -82,7 +96,8 @@ namespace Match3.View
                 foreach (var tile in fallingTiles)
                 {
                     var view = ViewList.FirstOrDefault(tv => tv.Model == tile);
-                    view.Fall();
+                    if (view != null)
+                        view.Fall();
                 }
             }
 

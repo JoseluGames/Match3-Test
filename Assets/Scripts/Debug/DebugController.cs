@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Match3.Model;
 using Match3.View;
-using PlasticPipe.PlasticProtocol.Messages;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,7 +20,13 @@ namespace Match3.Debugger
 
         [SerializeField] Slider timeScaleSlider;
 
+        [SerializeField] TMP_InputField widthInput;
+        [SerializeField] TMP_InputField heightInput;
+        [SerializeField] TMP_InputField colorsInput;
+        [SerializeField] Button createButton;
+
         bool stop = false;
+        bool isSimulating;
 
         //Called from UI
         public void SimulateMoves()
@@ -45,6 +50,7 @@ namespace Match3.Debugger
 
             simulateButton.interactable = false;
             stopButton.interactable = true;
+            isSimulating = true;
             var swappableTiles = new List<TileModel>();
 
             for (var i = 0; i < moves; i++)
@@ -89,6 +95,43 @@ namespace Match3.Debugger
             simulateButton.interactable = true;
             stopButton.interactable = false;
             stop = false;
+            isSimulating = false;
+        }
+
+        //Called from UI
+        public void NewGame()
+        {
+            StartCoroutine(NewGameRoutine());
+        }
+
+        IEnumerator NewGameRoutine()
+        {
+            if (!int.TryParse(widthInput.text, out var width))
+            {
+                Debug.LogError("Invalid width");
+                yield break;
+            }
+
+            if (!int.TryParse(heightInput.text, out var height))
+            {
+                Debug.LogError("Invalid height");
+                yield break;
+            }
+
+            if (!int.TryParse(colorsInput.text, out var colors))
+            {
+                Debug.LogError("Invalid colors");
+                yield break;
+            }
+
+            createButton.interactable = false;
+            if (isSimulating)
+                stop = true;
+
+            yield return new WaitWhile(() => isSimulating);
+            gameView.NewBoard(width, height, colors);
+
+            createButton.interactable = true;
         }
     }
 }
