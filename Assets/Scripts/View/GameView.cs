@@ -15,6 +15,7 @@ namespace Match3.View
         [SerializeField] Transform tilesContainer;
 
         [SerializeField] SpriteRenderer background;
+        [SerializeField] Transform maskTransform;
 
         [SerializeField] Camera mainCamera;
 
@@ -31,6 +32,7 @@ namespace Match3.View
 
             background.size = new Vector2(width * TileView.Size, height * TileView.Size);
             tilesContainer.transform.position = new Vector3(-background.size.x / 2 + TileView.Size / 2, -background.size.y / 2 + TileView.Size / 2);
+            maskTransform.localScale = new Vector3(width, height);
 
             mainCamera.orthographicSize = (Mathf.Max(width, height) * 1.2f) * TileView.Size; //TODO: Make it take into account the screen aspect ratio
 
