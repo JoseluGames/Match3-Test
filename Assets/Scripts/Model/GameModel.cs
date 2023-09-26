@@ -48,12 +48,13 @@ namespace Match3.Model
                     if (matchesForTile.Count > 0)
                     {
                         matchesForTile.Add(tile);
-                        foreach (var match in matchesForTile)
-                            Tiles[match.X, match.Y] = null;
-
                         matches.Add(matchesForTile);
                     }
                 }
+
+            foreach (var group in matches)
+                foreach (var match in group)
+                    Tiles[match.X, match.Y] = null;
 
             var fallingTiles = new List<TileModel>();
 
