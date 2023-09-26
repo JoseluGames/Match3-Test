@@ -108,7 +108,7 @@ namespace Match3.View
 
         void IBeginDragHandler.OnBeginDrag(PointerEventData eventData)
         {
-            if (IsBusy)
+            if (IsBusy || gameView.IsBoardBusy)
                 return;
 
             hasMoved = false;
@@ -117,7 +117,7 @@ namespace Match3.View
 
         void IDragHandler.OnDrag(PointerEventData eventData)
         {
-            if (IsBusy)
+            if (IsBusy || gameView.IsBoardBusy)
                 return;
 
             if (hasMoved)
@@ -160,7 +160,7 @@ namespace Match3.View
         }
 
         //Called by animator
-        void EndMatch()
+        public void EndMatch()
         {
             Destroy(gameObject);
             gameView.ViewList.Remove(this);
