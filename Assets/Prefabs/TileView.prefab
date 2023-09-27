@@ -132,13 +132,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spriteRenderer: {fileID: 7502091068974417080}
-  sprites:
-  - {fileID: 21300000, guid: 2e1f2f29cb2f448a4b748248788c82ee, type: 3}
-  - {fileID: 21300000, guid: 88f7476beeacb44fa9ea8b5483dcadda, type: 3}
-  - {fileID: 21300000, guid: 7d3636eb00ef549ba98ad63dd897bac3, type: 3}
-  - {fileID: 21300000, guid: c797b34370f104303b9b2c071271d5eb, type: 3}
-  - {fileID: 21300000, guid: 7e7cda9ff69804478a44c2392db4921c, type: 3}
-  - {fileID: 21300000, guid: a961910c3cca84adeb7d1f410f8383d4, type: 3}
+  tileColors: {fileID: 11400000, guid: b34425463bde6494fbd15dd9ac52d257, type: 2}
   dragSensitivity: 2
   animator: {fileID: 2158477713627525505}
   fallSpeed: 20

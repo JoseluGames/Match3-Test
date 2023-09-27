@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Match3.Data;
 using Match3.Model;
 using Match3.View.Action;
 using UnityEngine;
@@ -18,7 +19,7 @@ namespace Match3.View
         const string SuccessDirectionParam = "Success Direction";
 
         [SerializeField] SpriteRenderer spriteRenderer;
-        [SerializeField] Sprite[] sprites;
+        [SerializeField] TileColors tileColors;
         [SerializeField] float dragSensitivity;
         [SerializeField] Animator animator;
         [SerializeField] float fallSpeed;
@@ -41,7 +42,7 @@ namespace Match3.View
 
             transform.localPosition = new Vector3(model.X * Size, spawnY * Size);
 
-            spriteRenderer.sprite = sprites[model.Color];
+            spriteRenderer.sprite = tileColors.TileSprites[model.Color];
 
             model.OnSuccessfulSwap += OnSuccessfulSwap;
             model.OnFailedSwap += OnFailedSwap;

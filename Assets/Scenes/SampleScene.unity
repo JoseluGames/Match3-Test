@@ -4335,6 +4335,7 @@ MonoBehaviour:
   background: {fileID: 309625565}
   maskTransform: {fileID: 1748753679}
   mainCamera: {fileID: 519420031}
+  tileColors: {fileID: 11400000, guid: b34425463bde6494fbd15dd9ac52d257, type: 2}
 --- !u!1 &2005653315
 GameObject:
   m_ObjectHideFlags: 0

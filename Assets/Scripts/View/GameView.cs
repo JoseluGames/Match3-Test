@@ -3,6 +3,7 @@ using Match3.Model;
 using System.Linq;
 using UnityEngine;
 using System.Collections;
+using Match3.Data;
 
 namespace Match3.View
 {
@@ -15,6 +16,7 @@ namespace Match3.View
         [SerializeField] Transform maskTransform;
 
         [SerializeField] Camera mainCamera;
+        [SerializeField] TileColors tileColors;
 
         public List<TileView> ViewList { get; } = new();
 
@@ -28,6 +30,12 @@ namespace Match3.View
 
         public void NewBoard(int width, int height, int colors)
         {
+            if (colors > tileColors.TileSprites.Length)
+            {
+                colors = tileColors.TileSprites.Length;
+                Debug.LogWarning($"The number of colors was reduced to {colors} to match the number of sprites in the 'Data/Tile Colors' asset.");
+            }
+
             foreach (var view in ViewList)
                 Destroy(view.gameObject);
 

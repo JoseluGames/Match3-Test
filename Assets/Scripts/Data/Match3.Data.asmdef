@@ -1,11 +1,7 @@
 {
-    "name": "Match3.View",
-    "rootNamespace": "Match3.View",
-    "references": [
-        "GUID:188d3e6d968a04591b5fcdd6e197d826",
-        "GUID:739acc6e514b24a56a0bb751e30cd90f",
-        "GUID:8138bbef352dd4397b5601578c5e1f77"
-    ],
+    "name": "Match3.Data",
+    "rootNamespace": "Match3.Data",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
