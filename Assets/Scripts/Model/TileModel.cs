@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using System.Linq;
 
 namespace Match3.Model
@@ -25,8 +24,6 @@ namespace Match3.Model
         public bool IsSwappable => validSwaps.Any(kvp => kvp.Value != null);
         public Dictionary<Direction, TileModel> ValidSwaps => validSwaps;
 
-        Vector2Int Position => new(X, Y);
-
         public TileModel(GameModel gameModel, int x, int y, int color)
         {
             GameModel = gameModel;
@@ -41,26 +38,20 @@ namespace Match3.Model
             {
                 validSwaps[direction] = null;
 
-                var other = GameModel.GetTileAtDirection(new(X, Y), direction);
+                var other = GameModel.GetTileAtDirection(X, Y, direction);
                 if (other == null)
                     continue;
 
-                var posA = Position;
-                var posB = other.Position;
-                X = posB.x;
-                Y = posB.y;
-                other.X = posA.x;
-                other.Y = posA.y;
+                (X, other.X) = (other.X, X);
+                (Y, other.Y) = (other.Y, Y);
 
                 var matchesA = GetMatches();
                 var matchesB = other.GetMatches();
                 if (matchesA.Count > 0 || matchesB.Count > 0)
                     validSwaps[direction] = other;
 
-                X = posA.x;
-                Y = posA.y;
-                other.X = posB.x;
-                other.Y = posB.y;
+                (X, other.X) = (other.X, X);
+                (Y, other.Y) = (other.Y, Y);
             }
         }
 
@@ -88,7 +79,7 @@ namespace Match3.Model
                 var axisLength = direction == Direction.Left || direction == Direction.Right ? GameModel.Tiles.GetLength(0) : GameModel.Tiles.GetLength(1);
                 for (var i = 0; i < axisLength; i++)
                 {
-                    var otherTile = GameModel.GetTileAtDirection(lastTile.Position, direction);
+                    var otherTile = GameModel.GetTileAtDirection(lastTile.X, lastTile.Y, direction);
                     if (otherTile != null && otherTile.Color == Color && otherTile != this)
                     {
                         collection.Add(otherTile);
@@ -132,20 +123,16 @@ namespace Match3.Model
                 return;
             }
 
-            var posA = Position;
-            var posB = other.Position;
-            X = posB.x;
-            Y = posB.y;
-            GameModel.Tiles[posB.x, posB.y] = this;
+            (X, other.X) = (other.X, X);
+            (Y, other.Y) = (other.Y, Y);
 
-            other.X = posA.x;
-            other.Y = posA.y;
-            GameModel.Tiles[posA.x, posA.y] = other;
+            GameModel.Tiles[X, Y] = this;
+            GameModel.Tiles[other.X, other.Y] = other;
 
             other.OnSuccessfulSwap?.Invoke(direction.GetOpposite());
             OnSuccessfulSwap?.Invoke(direction);
 
-            GameModel.EvaluateMatches();
+            GameModel.EvaluateBoard();
         }
     }
 }

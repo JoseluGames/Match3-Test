@@ -112,7 +112,7 @@ namespace Match3.View
             IsBoardBusy = false;
 
             if (matches.Count > 0)
-                Model.EvaluateMatches();
+                Model.EvaluateBoard();
         }
     }
 }

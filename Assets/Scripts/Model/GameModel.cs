@@ -27,35 +27,14 @@ namespace Match3.Model
                 for (int y = 0; y < Tiles.GetLength(1); y++)
                     fallingTiles.Add(SpawnTile(x, y, Tiles.GetLength(1) + y));
 
-            for (int x = 0; x < Tiles.GetLength(0); x++)
-                for (int y = 0; y < Tiles.GetLength(1); y++)
-                    Tiles[x, y].RefreshValidSwaps();
+            RefreshValidSwaps();
 
-            OnBoardEvaluated?.Invoke(new(), fallingTiles);
+            OnBoardEvaluated?.Invoke(EvaluateMatches(), fallingTiles);
         }
 
-        public void EvaluateMatches()
+        public void EvaluateBoard()
         {
-            var matches = new List<List<TileModel>>();
-            for (int x = 0; x < Tiles.GetLength(0); x++)
-                for (int y = 0; y < Tiles.GetLength(1); y++)
-                {
-                    var tile = Tiles[x, y];
-                    if (tile == null)
-                        continue;
-
-                    var matchesForTile = tile.GetMatches();
-                    if (matchesForTile.Count > 0)
-                    {
-                        matchesForTile.Add(tile);
-                        matches.Add(matchesForTile);
-                    }
-                }
-
-            foreach (var group in matches)
-                foreach (var match in group)
-                    Tiles[match.X, match.Y] = null;
-
+            var matches = EvaluateMatches();
             var fallingTiles = new List<TileModel>();
 
             for (var x = 0; x < Tiles.GetLength(0); x++)
@@ -80,11 +59,49 @@ namespace Match3.Model
                     }
             }
 
-            for (int x = 0; x < Tiles.GetLength(0); x++)
-                for (int y = 0; y < Tiles.GetLength(1); y++)
-                    Tiles[x, y].RefreshValidSwaps();
+            RefreshValidSwaps();
 
             OnBoardEvaluated?.Invoke(matches, fallingTiles);
+        }
+
+        List<List<TileModel>> EvaluateMatches()
+        {
+            var matches = new List<List<TileModel>>();
+            for (int x = 0; x < Tiles.GetLength(0); x++)
+                for (int y = 0; y < Tiles.GetLength(1); y++)
+                {
+                    var tile = Tiles[x, y];
+                    if (tile == null)
+                        continue;
+
+                    var matchesForTile = tile.GetMatches();
+                    if (matchesForTile.Count > 0)
+                    {
+                        matchesForTile.Add(tile);
+                        matches.Add(matchesForTile);
+                    }
+                }
+
+            foreach (var group in matches)
+                foreach (var match in group)
+                    Tiles[match.X, match.Y] = null;
+
+            return matches;
+        }
+
+        void RefreshValidSwaps()
+        {
+
+            var anySwappable = false;
+            for (int x = 0; x < Tiles.GetLength(0); x++)
+                for (int y = 0; y < Tiles.GetLength(1); y++)
+                {
+                    Tiles[x, y].RefreshValidSwaps();
+                    anySwappable |= Tiles[x, y].IsSwappable;
+                }
+
+            if (!anySwappable)
+                Debug.LogWarning("No valid moves available");
         }
 
         public TileModel SpawnTile(int x, int y, int spawnY)
@@ -120,17 +137,23 @@ namespace Match3.Model
             if (tileLeft != null && tileRight != null && tileLeft.Color == tileRight.Color)
                 validColors.Remove(tileLeft.Color);
 
+            if (validColors.Count == 0)
+            {
+                Debug.LogWarning($"No valid colors for position ({x}, {y}), returning default.");
+                return 0;
+            }
+
             return validColors[UnityEngine.Random.Range(0, validColors.Count)];
         }
 
-        public TileModel GetTileAtDirection(Vector2Int position, Direction direction)
+        public TileModel GetTileAtDirection(int x, int y, Direction direction)
         {
             return direction switch
             {
-                Direction.Top => position.y < Tiles.GetLength(1) - 1 ? Tiles[position.x, position.y + 1] : null,
-                Direction.Down => position.y > 0 ? Tiles[position.x, position.y - 1] : null,
-                Direction.Left => position.x > 0 ? Tiles[position.x - 1, position.y] : null,
-                Direction.Right => position.x < Tiles.GetLength(0) - 1 ? Tiles[position.x + 1, position.y] : null,
+                Direction.Top => y < Tiles.GetLength(1) - 1 ? Tiles[x, y + 1] : null,
+                Direction.Down => y > 0 ? Tiles[x, y - 1] : null,
+                Direction.Left => x > 0 ? Tiles[x - 1, y] : null,
+                Direction.Right => x < Tiles.GetLength(0) - 1 ? Tiles[x + 1, y] : null,
                 _ => null,
             };
         }
